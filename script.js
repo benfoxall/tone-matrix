@@ -134,16 +134,27 @@ b.update(function(data){
 
 b(notes);
 
+// this could be any timestamp, or tween of timestamps
+// or whatever
+function now(){
+  return Date.now();
+}
+
 var duration = 2;
 var timescale = d3.scale.linear()
   .domain([0, timesteps])
   .range([0,duration])
 
 function schedule(){
+
+  var off = (duration*1000) - (now() % (duration*1000));
+  console.log(off);
+
+
   notes.forEach(function(n,i){
     if(n.active){
       var f = 1200 - (n.j*100),
-          t = timescale(n.i);
+          t = timescale(n.i) + (off/1000);
       play(f, t);
       setTimeout(function(){
         item[0][i].className = 'item playing'
@@ -174,7 +185,7 @@ function play(f, off){
 
   var gainNode = context.createGain();
   gainNode.gain.value = 0;
-  gainNode.gain.exponentialRampToValueAtTime(0.4, now+0.2);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, now+0.2);
   gainNode.gain.linearRampToValueAtTime(0, now+0.5);
   oscillator.connect(gainNode);
   gainNode.connect(context.destination);
@@ -188,28 +199,33 @@ function play(f, off){
 //19.55 -> 20:14
 
 
-
+notes.reduce(function(list, note){
+  if(list.indexOf(note.i + '_' + note.j) > -1){
+    note.active = true;
+  }
+  return list;
+}, ["0_3", "4_4", "8_5", "10_6", "12_7", "14_9"])
 
 
 
 
 // ting
-var tingBuffer;
+// var tingBuffer;
 
-var xhr = new XMLHttpRequest();
-xhr.open('GET', '_ting.mp3', true);
-xhr.responseType = 'arraybuffer';
+// var xhr = new XMLHttpRequest();
+// xhr.open('GET', '_ting.mp3', true);
+// xhr.responseType = 'arraybuffer';
 
-// Decode asynchronously
-xhr.onload = function() {
-  context.decodeAudioData(xhr.response, function(buffer) {
-    tingBuffer = buffer;
-    // if(!firstLoaded) firstLoaded = name;
-  }, function(e){
-      console.log("an error occured requesting ", url, e)
-  });
-}
-xhr.send();
+// // Decode asynchronously
+// xhr.onload = function() {
+//   context.decodeAudioData(xhr.response, function(buffer) {
+//     tingBuffer = buffer;
+//     // if(!firstLoaded) firstLoaded = name;
+//   }, function(e){
+//       console.log("an error occured requesting ", url, e)
+//   });
+// }
+// xhr.send();
 
 
 
