@@ -8,13 +8,34 @@ var livereload = require('gulp-livereload');
 var notify = require("gulp-notify");
 var less = require('gulp-less');
 
+var paths = {
+  js: 'src/*.js',
+
+  libs: [
+    'bower/d3/d3.js',
+    'bower/reqwest/reqwest.js'
+  ]
+}
+
 
 gulp.task('js', function() {
-  gulp.src('src/*.js')
+  gulp.src(paths.js)
   .pipe(sourcemaps.init())
     .pipe(concat('all.js'))
     .pipe(uglify())
     .on('error', notify.onError({title:"js build error"}))
+  .pipe(sourcemaps.write('./'))
+  .pipe(gulp.dest('build'))
+  .pipe(livereload());
+});
+
+
+gulp.task('libs', function() {
+  gulp.src(paths.libs)
+  .pipe(sourcemaps.init())
+    .pipe(concat('libs.js'))
+    .pipe(uglify())
+    .on('error', notify.onError({title:"js lib build error"}))
   .pipe(sourcemaps.write('./'))
   .pipe(gulp.dest('build'))
   .pipe(livereload());
@@ -39,9 +60,10 @@ gulp.task('html', function() {
 })
 
 
-gulp.task('default', ['js', 'css'], function(){
+gulp.task('default', ['js', 'libs', 'css'], function(){
   livereload.listen();
-  gulp.watch('src/*.js', ['js']);
+  gulp.watch(paths.js,   ['js']);
+  gulp.watch(paths.libs, ['libs']);
   gulp.watch('src/*.less', ['css']);
   gulp.watch('*.html',   ['html']);
 
