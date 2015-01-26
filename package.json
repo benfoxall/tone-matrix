@@ -16,7 +16,7 @@
     "url": "https://github.com/benfoxall/tone-matrix/issues"
   },
   "homepage": "https://github.com/benfoxall/tone-matrix",
-  "dependencies": {
+  "devDependencies": {
     "connect-livereload": "^0.5.2",
     "gulp-less": "^2.0.1",
     "gulp-livereload": "^3.5.0",
