@@ -4,7 +4,8 @@ var el = d3.select('body')
 
 var b = boxLayout()
   .width(window.innerWidth)
-  .height(window.innerHeight);
+  .height(window.innerHeight)
+  .padding(0);
 
 
 function Note(i, j){
@@ -12,9 +13,11 @@ function Note(i, j){
   this.j = j;
 }
 
-Note.prototype.handle = function() {  
+Note.prototype.handle = function(element) {
   this.active = !this.active;
-  item.attr('class', function(d){return d.active ? 'item active' :'item'})
+
+  // shortcut the active classes
+  element.className = this.active ? 'item active' :'item';
 };
 
 
@@ -22,10 +25,26 @@ var timesteps = 16,
     notes = [];
 
 for(var i = 0; i < timesteps; i++){
-  for(var j = 0; j < 10; j++){
+  for(var j = 0; j < 7; j++){
     notes.push(new Note(i,j))
   }
 }
+
+// var notes2 = [];
+
+// for(var i = 0; i < 5; i++){
+//   for(var j = 0; j < 5; j++){
+//     notes2.push(new Note(i,j))
+//   }
+// }
+
+var timeButtons = [
+  {i: 0, j:0, handle: function(){
+    console.log("asdfas")
+  }},{i: 1, j:0},{i: 2, j:0},{i: 3, j:0}
+]
+
+
 
 var item = el.selectAll('.item')
   .data(notes);
@@ -43,6 +62,18 @@ b.update(function(data){
     .on('touchstart', handler)
     .on('mousedown', handler)
     // .style('transition-delay', function(d){return ((d.j+d.i) / 70) + 's'});
+    // .style('transform', 'translate(0,0)')
+
+
+
+  item
+    .style('transform', function(d){return 'translate('+d.x+'px, '+d.y+'px)'})
+    .transition()
+    .delay(function(d,i){return 200+(i*10)})
+    // .transition()
+    // .delay(function(d,i){return i*10})
+    .style('width', function(d){return d.width + 'px'})
+    .style('height', function(d){return d.height + 'px'})
 
   item
     .exit()
@@ -50,13 +81,15 @@ b.update(function(data){
     .style('width', 0)
     .remove();
 
-  item
-    .style('transform', function(d){return 'translate('+d.x+'px, '+d.y+'px)'})
-    .style('width', function(d){return d.width + 'px'})
-    .style('height', function(d){return d.height + 'px'})
+item.attr('class', function(d){return d.active ? 'item active' :'item'})
 
-  function handler(d){
-    d.handle && d.handle()
+  function handler(d){  
+    // stop touches from firing mouse/click event
+    d3.event.stopPropagation();
+    d3.event.preventDefault();
+    console.log(this)
+
+    d.handle && d.handle(this)
   }
 
 })
@@ -65,14 +98,26 @@ b(notes);
 
 // this could be any timestamp, or tween of timestamps
 // or whatever
-function now(){
-  return Date.now();
-}
+var now = (function(){
+  var serverOffset = 0;
+  reqwest('http://js-time.herokuapp.com/')
+  .then(function(d){ 
+    serverOffset = Date.now() - parseInt(d);
+    console.log(serverOffset)
+  })
+
+  return function now(){
+    return Date.now() - serverOffset;
+  }
+})();
+
 
 var duration = 2;
 var timescale = d3.scale.linear()
   .domain([0, timesteps])
   .range([0,duration])
+
+var cscale = [880, 783.99, 698.46, 659.26, 587.33, 523.25, 493.88];
 
 function schedule(){
 
@@ -82,7 +127,7 @@ function schedule(){
 
   notes.forEach(function(n,i){
     if(n.active){
-      var f = 1200 - (n.j*100),
+      var f = cscale[n.j], // 1200 - (n.j*100),
           t = timescale(n.i) + (off/1000);
       play(f, t);
       setTimeout(function(){
@@ -114,7 +159,7 @@ function play(f, off){
 
   var gainNode = context.createGain();
   gainNode.gain.value = 0;
-  gainNode.gain.exponentialRampToValueAtTime(0.01, now+0.2);
+  gainNode.gain.exponentialRampToValueAtTime(0.2, now+0.2);
   gainNode.gain.linearRampToValueAtTime(0, now+0.5);
   oscillator.connect(gainNode);
   gainNode.connect(context.destination);
@@ -125,8 +170,6 @@ function play(f, off){
 
 }
 
-//19.55 -> 20:14
-
 
 notes.reduce(function(list, note){
   if(list.indexOf(note.i + '_' + note.j) > -1){
@@ -134,7 +177,6 @@ notes.reduce(function(list, note){
   }
   return list;
 }, ["0_3", "4_4", "8_5", "10_6", "12_7", "14_9"])
-
 
 
 
@@ -183,12 +225,57 @@ function play(f, off){
 }
 */
 
+var teardowns = [];
+
+
+var timers = [ 
+  {
+    i: 0, j:0,
+    handle: function(){
+      console.log("set timer one")
+    }
+  },
+  {
+    i: 1, j:0,
+    handle: function(){
+      console.log("set timer two")
+    }
+  },
+  {
+    i: 2, j:0,
+    handle: function(){
+      console.log("set timer three")
+    }
+  },
+  {
+    i: 3, j:0,
+    handle: function(){
+      console.log("set timer four")
+    }
+  }
+  
+]
+
+function showTimings(){
+  b.padding(0.3)(timers)
+}
+
+function showNotes(){
+  b.padding(0)(notes)
+}
+
+function showSingle(){
+  b.padding(0)([{i:0,j:0}])
+}
+
+
+
 
 function fitWindow(){
-
-  b.width(window.innerWidth);
-  b.height(window.innerHeight);
-  b();
+  b
+    .width(window.innerWidth)
+    .height(window.innerHeight)
+  ()
 }
 
 fitWindow();

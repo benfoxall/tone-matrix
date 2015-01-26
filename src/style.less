@@ -2,10 +2,10 @@ body{
 	margin:0;
 	background:#eee;
 }
-.item{
+.grid div{
 	position: absolute;
 	transform: translate(0,0);
-	transition: all .25s;
+	transition: transform .5s;
 	background: #fff;
 	border: 1px solid #ddd;
 
@@ -18,7 +18,6 @@ body{
 	}
 	&.playing{
 		.bg(#08f);
-		.shadow(4);
 	}
 
 	// &:hover{
